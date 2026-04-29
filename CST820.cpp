@@ -8,12 +8,13 @@
     https://pan.jczn1688.com/pd/1/HMI%20display/JC2432W328.zip
 */
 
-CST820::CST820(void) {
+CST820::CST820() {
 }
 
 void CST820::begin(int8_t _sda, int8_t _scl, int8_t _rst, int8_t _int) {
     int8_t x;
     int i;
+
 
     // Initialize I2C
     if (_sda != -1 && _scl != -1) {
@@ -163,14 +164,6 @@ int8_t CST820::enable_double_click(byte enable) {    // default 0x01
 }
 
 /*!
-    Disable double-tap
-*/
-int8_t CST820::disable_double_click(void) {
-  byte doubleTap = 0x00;  // 0 value enables auto sleep
-  return i2c_write(0xEC, doubleTap);
-}
-
-/*!
     @brief  Disable auto sleep mode
 */
 int8_t CST820::disable_auto_sleep(void) {
@@ -182,6 +175,7 @@ int8_t CST820::disable_auto_sleep(void) {
     @brief  Enable auto sleep mode
 */
 int8_t CST820::enable_auto_sleep(void) {
+
   byte enableAutoSleep = 0x00;  // 0 value enables auto sleep
   return i2c_write(0xFE, enableAutoSleep);
 }
