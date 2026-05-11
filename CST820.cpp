@@ -25,11 +25,7 @@ void CST820::begin(int8_t _sda, int8_t _scl, int8_t _rst, int8_t _int) {
 
     // Int Pin Configuration
     if (_int != -1) {
-        pinMode(_int, OUTPUT);
-        digitalWrite(_int, HIGH);
-        delay(1);
-        digitalWrite(_int, LOW);
-        delay(1);
+        pinMode(_int, INPUT);
     }
 
     // Reset Pin Configuration
@@ -85,10 +81,11 @@ void CST820::read_touch() {
 /*
     Legacy call interface
 */
-uint8_t CST820::getTouch(uint16_t *x, uint16_t *y, uint8_t *gesture) {
+uint8_t CST820::getTouch(uint16_t *x, uint16_t *y, uint16_t ignore) {
     read_touch();
 
-    *gesture = data.gestureID;
+    // if (gesture)
+    //	*gesture = data.gestureID;
     // if (!(*gesture == SlideUp || *gesture == SlideDown))
     // {
     //     *gesture = None;
