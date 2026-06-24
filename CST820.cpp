@@ -1,5 +1,14 @@
 #include "CST820.h"
 // #include <bitset>
+/*
+MIT License
+
+Copyright (c) 2026 Peter Shipley
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction,
+*/
 
 
 /*
@@ -8,19 +17,42 @@
     https://pan.jczn1688.com/pd/1/HMI%20display/JC2432W328.zip
 */
 
+
+/*
+
+    if the upper nubble of reg 0xFE are set gestures are "event types" are disabled/
+    I am yet to Figure out how to enable gestures.
+
+*/
+
+// https://pebblebay.com/i2c-lock-up-prevention-and-recovery/
+#define I2C_RECOVER_NUM_CLOCKS      10U     /* # clock cycles for recovery  */
+#define I2C_RECOVER_CLOCK_FREQ      50000U  /* clock frequency for recovery */
+
+#define I2C_RECOVER_CLOCK_DELAY_US  (1000000U / (2U * I2C_RECOVER_CLOCK_FREQ))
+
 CST820::CST820() {
 }
 
-void CST820::begin(int8_t _sda, int8_t _scl, int8_t _rst, int8_t _int) {
+void CST820::begin(int8_t _sda, int8_t _scl, int8_t _rst, int8_t _int, uint32_t freq) {
     int8_t x;
     int i;
 
 
     // Initialize I2C
     if (_sda != -1 && _scl != -1) {
-        Wire.begin(_sda, _scl);
+        for (x= 0; x < I2C_RECOVER_NUM_CLOCKS; ++x) {
+            digitalWrite(_scl, LOW);
+            delayMicroseconds(5);
+            digitalWrite(_scl, HIGH);
+            delayMicroseconds(5);
+        }
+
+        Wire.begin(_sda, _scl, freq);
     } else {
         Wire.begin();
+        if (freq)
+          Wire.setClock(freq);
     }
 
     // Int Pin Configuration
@@ -36,6 +68,10 @@ void CST820::begin(int8_t _sda, int8_t _scl, int8_t _rst, int8_t _int) {
         digitalWrite(_rst, HIGH);
         delay(300);
     }
+}
+
+void CST820::_begin(int8_t _sda, int8_t _scl, int8_t _rst, int8_t _int, uint32_t freq) {
+    int8_t x;
 
     memset(&data, 0, sizeof(data));
 
@@ -69,10 +105,10 @@ void CST820::read_touch() {
     int8_t x;
     do {
         x = i2c_read_continuous(0x01, data_raw, 6);   // -1 = err, 0 = good
-    } while(x);
+    } while (x);
 
-    data.gestureID = data_raw[0] & 0x0F;  // Gesture 
-    data.points = data_raw[1];	   // number of touch points
+    data.gestureID = data_raw[0] & 0x0F;  // Gesture
+    data.points = data_raw[1];     // number of touch points
     data.event = data_raw[2] >> 6;  // Event (0 = Down, 1 = Up, 2 = Contact)
     data.x = ((data_raw[2] & 0xF) << 8) + data_raw[3];
     data.y = ((data_raw[4] & 0xF) << 8) + data_raw[5];
@@ -84,12 +120,12 @@ void CST820::read_touch() {
 uint8_t CST820::getTouch(uint16_t *x, uint16_t *y, uint16_t ignore) {
     read_touch();
 
-    // if (gesture)
-    //	*gesture = data.gestureID;
-    // if (!(*gesture == SlideUp || *gesture == SlideDown))
-    // {
+    //  if (gesture)
+    //   *gesture = data.gestureID;
+    //  if (!(*gesture == SlideUp || *gesture == SlideDown))
+    //  {
     //     *gesture = None;
-    // }
+    //  }
 
     *x = data.x;
     *y = data.y;
@@ -172,11 +208,9 @@ int8_t CST820::disable_auto_sleep(void) {
     @brief  Enable auto sleep mode
 */
 int8_t CST820::enable_auto_sleep(void) {
-
   byte enableAutoSleep = 0x00;  // 0 value enables auto sleep
   return i2c_write(0xFE, enableAutoSleep);
 }
-
 
 /*!
     @brief  Set the auto sleep time
@@ -199,28 +233,28 @@ int8_t CST820::set_auto_sleep_time(int seconds) {
 String CST820::gesture() {
   switch (data.gestureID) {
     case None:
-      return "NONE";
+      return F("NONE");
       break;
     case SlideDown:
-      return "SWIPE DOWN";
+      return F("SWIPE DOWN");
       break;
     case SlideUp:
-      return "SWIPE UP";
+      return F("SWIPE UP");
       break;
     case SlideLeft:
-      return "SWIPE LEFT";
+      return F("SWIPE LEFT");
       break;
     case SlideRight:
-      return "SWIPE RIGHT";
+      return F("SWIPE RIGHT");
       break;
     case SingleTap:
-      return "SINGLE CLICK";
+      return F("SINGLE CLICK");
       break;
     case DoubleTap:
-      return "DOUBLE CLICK";
+      return F("DOUBLE CLICK");
       break;
     case LongPress:
-      return "LONG PRESS";
+      return F("LONG PRESS");
       break;
     default:
       return (String)data.gestureID;

@@ -40,8 +40,9 @@ class CST820 {
 public:
   CST820();
 
+
   void begin(int8_t _sda = -1, int8_t _scl = -1, int8_t _rst = -1,
-             int8_t _int = -1);
+             int8_t _int = -1, uint32_t freq = 0);
   uint8_t getTouch(uint16_t *x, uint16_t *y, uint16_t ignore = 0);
   String gesture();
   String event_type();
@@ -55,6 +56,7 @@ public:
 
 private:
 
+  int8_t sda, scl;
   uint8_t i2c_read(uint8_t addr);
   int8_t i2c_read_continuous(uint8_t addr, uint8_t *data, uint32_t length);
   int8_t i2c_write(uint8_t addr, uint8_t data);
