@@ -40,6 +40,8 @@ void CST820::begin(int8_t _sda, int8_t _scl, int8_t _rst, int8_t _int, uint32_t 
 
 
     // Initialize I2C
+    // https://github.com/esp8266/Arduino/issues/1025
+    // https://www.forward.com.au/pfod/ArduinoProgramming/I2C_ClearBus/index.html
     if (_sda != -1 && _scl != -1) {
         for (x= 0; x < I2C_RECOVER_NUM_CLOCKS; ++x) {
             digitalWrite(_scl, LOW);
@@ -68,10 +70,7 @@ void CST820::begin(int8_t _sda, int8_t _scl, int8_t _rst, int8_t _int, uint32_t 
         digitalWrite(_rst, HIGH);
         delay(300);
     }
-}
 
-void CST820::_begin(int8_t _sda, int8_t _scl, int8_t _rst, int8_t _int, uint32_t freq) {
-    int8_t x;
 
     memset(&data, 0, sizeof(data));
 
